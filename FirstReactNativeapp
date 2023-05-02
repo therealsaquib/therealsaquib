@@ -1,0 +1,99 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const ContactForm = () => {
+  const [name, setName] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [errors, setErrors] = useState({});
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const isValid = validateForm();
+    if (isValid) {
+      const formData = {
+        name: name,
+        mobile: mobile,
+        email: email,
+        message: message
+      };
+      try {
+        const response = await axios.post('https://api.sendgrid.com/v3/mail/send', formData, {
+          headers: {
+            'Authorization': 'Bearer YOUR_SENDGRID_API_KEY',
+            'Content-Type': 'application/json'
+          }
+        });
+        console.log(response);
+        alert('Your message has been sent!');
+        setName('');
+        setMobile('');
+        setEmail('');
+        setMessage('');
+        setErrors({});
+      } catch (error) {
+        console.error(error);
+        alert('There was an error sending your message.');
+      }
+    }
+  };
+
+  const validateForm = () => {
+    let errors = {};
+    let isValid = true;
+    if (!name) {
+      errors.name = 'Please enter your name.';
+      isValid = false;
+    }
+    if (!mobile) {
+      errors.mobile = 'Please enter your mobile number.';
+      isValid = false;
+    }
+    if (!email) {
+      errors.email = 'Please enter your email address.';
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      errors.email = 'Please enter a valid email address.';
+      isValid = false;
+    }
+    if (!message) {
+      errors.message = 'Please enter a message.';
+      isValid = false;
+    }
+    setErrors(errors);
+    return isValid;
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <label>
+        Name:
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+        {errors.name && <span>{errors.name}</span>}
+      </label>
+      <br />
+      <label>
+        Mobile Number:
+        <input type="text" value={mobile} onChange={(e) => setMobile(e.target.value)} />
+        {errors.mobile && <span>{errors.mobile}</span>}
+      </label>
+      <br />
+      <label>
+        Email:
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        {errors.email && <span>{errors.email}</span>}
+      </label>
+      <br />
+      <label>
+        Message:
+        <textarea value={message} onChange={(e) => setMessage(e.target.value)} />
+        {errors.message && <span>{errors.message}</span>}
+      </label>
+      <br />
+      <button type="submit">Submit</button>
+    </form>
+  );
+};
+
+export default ContactForm;
